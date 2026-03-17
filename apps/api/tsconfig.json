@@ -1,0 +1,20 @@
+{
+  "extends": "@approva/config/typescript/nest.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@approva/config": [
+        "../../packages/config/src"
+      ],
+      "@approva/email": [
+        "../../packages/email/src"
+      ],
+      "@approva/shared": [
+        "../../packages/shared/src"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}

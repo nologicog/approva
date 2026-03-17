@@ -1,0 +1,15 @@
+{
+  "extends": "@approva/config/typescript/base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "dist",
+    "paths": {
+      "@approva/shared": [
+        "../shared/src"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "name": "approva",
+  "private": true,
+  "packageManager": "pnpm@10.30.0",
+  "dependencies": {
+    "@prisma/client": "^6.19.2"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "build:packages": "pnpm --filter @approva/config build && pnpm --filter @approva/shared build && pnpm --filter @approva/email build && pnpm --filter @approva/sdk build && pnpm --filter @approva/cli build",
+    "bootstrap": "tsx scripts/bootstrap.ts",
+    "cli:build": "pnpm --filter @approva/cli build",
+    "dev": "pnpm build:packages && concurrently -k -n api,ui \"pnpm --filter @approva/api start:dev\" \"pnpm --filter @approva/approval-ui dev\"",
+    "dev:api": "pnpm build:packages && pnpm --filter @approva/api start:dev",
+    "dev:ui": "pnpm build:packages && pnpm --filter @approva/approval-ui dev",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "prisma db seed",
+    "test:e2e:api:prepare": "prisma db push --skip-generate",
+    "test:e2e:api": "pnpm --filter @approva/api test:e2e",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "prisma": "^6.6.0",
+    "tsx": "^4.20.6"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}

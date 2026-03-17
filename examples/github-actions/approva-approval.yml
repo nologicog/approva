@@ -1,0 +1,88 @@
+name: Approva Approval Gate
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-with-approva:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install workspace dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Approva CLI
+        run: pnpm cli:build
+
+      - name: Request deployment approval
+        env:
+          APPROVA_BASE_URL: ${{ secrets.APPROVA_BASE_URL }}
+          APPROVA_API_KEY: ${{ secrets.APPROVA_API_KEY }}
+        run: |
+          node packages/cli/dist/index.js approval request \
+            --action deployment.execute \
+            --resource-type service \
+            --resource-id billing-api \
+            --risk-level high \
+            --requested-by-system github-actions \
+            --requested-by-actor-id "${{ github.run_id }}" \
+            --reason "Deploy commit ${{ github.sha }} to production" \
+            --json > approval.json
+
+          cat approval.json
+          echo "APPROVAL_REQUEST_ID=$(jq -r '.request.id' approval.json)" >> "$GITHUB_ENV"
+
+      - name: Wait for approval
+        env:
+          APPROVA_BASE_URL: ${{ secrets.APPROVA_BASE_URL }}
+          APPROVA_API_KEY: ${{ secrets.APPROVA_API_KEY }}
+        run: |
+          for attempt in $(seq 1 60); do
+            node packages/cli/dist/index.js approval get "$APPROVAL_REQUEST_ID" --json > approval-status.json
+            STATUS=$(jq -r '.request.status' approval-status.json)
+            echo "Current status: $STATUS"
+
+            if [ "$STATUS" = "approved" ] || [ "$STATUS" = "auto_approved" ]; then
+              exit 0
+            fi
+
+            if [ "$STATUS" = "rejected" ] || [ "$STATUS" = "expired" ]; then
+              echo "Approval did not succeed."
+              exit 1
+            fi
+
+            sleep 10
+          done
+
+          echo "Timed out waiting for approval."
+          exit 1
+
+      - name: Use granted capability if provided
+        if: ${{ secrets.APPROVA_CAPABILITY_TOKEN != '' }}
+        env:
+          APPROVA_BASE_URL: ${{ secrets.APPROVA_BASE_URL }}
+          APPROVA_API_KEY: ${{ secrets.APPROVA_API_KEY }}
+          APPROVA_CAPABILITY_TOKEN: ${{ secrets.APPROVA_CAPABILITY_TOKEN }}
+        run: |
+          node packages/cli/dist/index.js capability use \
+            --token "$APPROVA_CAPABILITY_TOKEN" \
+            --action deployment.execute \
+            --resource-type service \
+            --resource-id billing-api \
+            --params-json '{"environment":"production","version":"2026.03.16-demo","region":"eu-west-1","reason":"Deploy commit from GitHub Actions"}'
+
+      - name: Execute protected deployment
+        run: echo "Deployment executed."

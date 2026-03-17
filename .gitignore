@@ -1,0 +1,14 @@
+node_modules
+dist
+.next
+.turbo
+.pnpm-store
+.env
+.env.local
+coverage
+pnpm-lock.yaml
+*.tsbuildinfo
+apps/api/.env
+apps/api/.env.test
+apps/approval-ui/.env.local
+prisma/dev.db

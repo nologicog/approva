@@ -1,0 +1,13 @@
+.git
+.github
+.DS_Store
+node_modules
+.pnpm-store
+dist
+.next
+coverage
+*.log
+.env
+apps/api/.env
+apps/approval-ui/.env.local
+examples/node-deploy-agent/.env

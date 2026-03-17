@@ -1,0 +1,27 @@
+{
+  "name": "@approva/cli",
+  "version": "0.1.0",
+  "private": true,
+  "bin": {
+    "approva": "./dist/index.js",
+    "authon": "./dist/index.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx watch src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@approva/sdk": "workspace:*",
+    "@approva/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@approva/config": "workspace:*",
+    "@types/node": "^24.3.0",
+    "tsup": "^8.5.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.2"
+  }
+}

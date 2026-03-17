@@ -1,0 +1,54 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: approva
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - approva_open_core_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d approva"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  approva-api:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ../env/open-core.self-host.root.env
+      - ../env/open-core.self-host.api.env
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+    command: >
+      sh -lc "pnpm prisma db push --skip-generate && pnpm --filter @approva/api start"
+    ports:
+      - "4000:4000"
+
+  approva-console:
+    build:
+      context: ../..
+      dockerfile: apps/approval-ui/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - approva-api
+    env_file:
+      - ../env/open-core.self-host.root.env
+      - ../env/open-core.self-host.ui.env
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_TELEMETRY_DISABLED: "1"
+    ports:
+      - "3000:3000"
+
+volumes:
+  approva_open_core_pgdata:

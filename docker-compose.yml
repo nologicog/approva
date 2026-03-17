@@ -1,0 +1,78 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: approva-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: approva
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - approva_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d approva"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  approva-api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: approva-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/approva?schema=public
+      AUTHON_RUNTIME_MODE: open-core
+      AUTHON_SELF_HOST_MODE: "true"
+      AUTHON_DEFAULT_ORGANIZATION_NAME: Default Organization
+      AUTHON_DEFAULT_ORGANIZATION_SLUG: default
+      APPROVAL_UI_BASE_URL: http://localhost:3000
+      CAPABILITY_TTL_MINUTES: 15
+      APPROVAL_ACCESS_TOKEN_SECRET: change-me-approval-access
+      PASSKEY_RP_NAME: Approva
+      PASSKEY_RP_ID: localhost
+      PASSKEY_EXPECTED_ORIGINS: http://localhost:3000
+      APPROVER_SESSION_TTL_MINUTES: 480
+      PASSKEY_CHALLENGE_TTL_MINUTES: 5
+      AUTHON_RATE_LIMIT_ENABLED: "true"
+      AUTHON_RATE_LIMIT_GLOBAL: 60
+      AUTHON_RATE_LIMIT_AUTHENTICATED: 300
+    command: >
+      sh -lc "pnpm prisma db push --skip-generate && pnpm --filter @approva/api start"
+    ports:
+      - "4000:4000"
+
+  approva-console:
+    build:
+      context: .
+      dockerfile: apps/approval-ui/Dockerfile
+    container_name: approva-console
+    restart: unless-stopped
+    depends_on:
+      approva-api:
+        condition: service_started
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/approva?schema=public
+      AUTHON_RUNTIME_MODE: open-core
+      AUTHON_SELF_HOST_MODE: "true"
+      AUTHON_DEFAULT_ORGANIZATION_NAME: Default Organization
+      AUTHON_DEFAULT_ORGANIZATION_SLUG: default
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:4000
+      AUTHON_INTERNAL_API_BASE_URL: http://approva-api:4000
+      AUTH_URL: http://localhost:3000
+      NEXT_TELEMETRY_DISABLED: "1"
+    ports:
+      - "3000:3000"
+
+volumes:
+  approva_pgdata:

@@ -1,0 +1,120 @@
+Approva License v1
+
+Copyright (c) 2026 Lukman Nuriakhmetov
+
+1. Definitions
+
+   "Software" means the Approva Open Core source code, object code, examples, documentation,
+   and other materials made available in this repository.
+
+   "Licensor" means Lukman Nuriakhmetov.
+
+   "You" means an individual or legal entity exercising rights under this License.
+
+   "Derivative Works" means any modified version of the Software, or any work based on the
+   Software, excluding works that merely interface with the Software through documented APIs.
+
+   "Standalone Hosted SaaS Service" means a hosted, network-accessible service in which the
+   Software, or substantially similar functionality, is offered as the primary product, service,
+   or value proposition to third parties.
+
+   "Competing Approval Platform" means a product or service whose primary value is approval
+   workflow infrastructure, approval orchestration, or a substantially similar approval platform,
+   where the Software or a Derivative Work forms a substantial basis of that offering.
+
+   "Managed Hosting for Specific Customers" means hosting or operating the Software on behalf of
+   one or more specifically identified customers under a direct service, consulting, outsourcing,
+   or enterprise arrangement, where the Software is not offered to the public as a standalone
+   hosted service and is not presented as Your own approval product.
+
+   "Commercial License" means a separate written commercial agreement signed by the Licensor.
+
+2. License Grant
+
+   Subject to this License, Licensor grants You a non-exclusive, worldwide, non-transferable,
+   revocable license to use, reproduce, modify, self-host, perform, and distribute the Software
+   and Derivative Works for the permitted purposes described below.
+
+3. Permitted Uses
+
+   Subject to the restrictions in this License, You may:
+
+   a. self-host the Software;
+   b. use the Software for internal business purposes;
+   c. use the Software in commercial environments;
+   d. embed the Software into a larger product or service; and
+   e. provide Managed Hosting for Specific Customers.
+
+4. Restrictions
+
+   Without a Commercial License, You may not:
+
+   a. offer the Software, or any Derivative Work of it, as a Standalone Hosted SaaS Service;
+   b. create, operate, market, or provide a Competing Approval Platform;
+   c. rebrand the Software, remove the Approva name from the product identity, or present the
+      Software as Your own standalone product;
+   d. remove, obscure, or circumvent the attribution required by Section 5; or
+   e. provide OEM, white-label, or substantially similar rights that allow another party to offer
+      the Software without clear Approva attribution.
+
+5. Attribution
+
+   Any deployment, distribution, or user-facing use of the Software or a Derivative Work must
+   include clear, visible attribution to Approva.
+
+   Acceptable attribution includes:
+
+   "Powered by Approva"
+
+   or a substantially equivalent statement that clearly identifies Approva as the underlying
+   software.
+
+   Where the Software has a user interface, the attribution must appear in a reasonably visible
+   location such as a footer, settings page, about page, admin console, operator console, or
+   equivalent location customarily available to users or operators of the Software. Where the
+   Software is distributed without a user interface, attribution must appear in accompanying
+   documentation or service materials.
+
+6. Commercial License Requirement
+
+   A Commercial License is required for any use that would otherwise be prohibited by Section 4,
+   including:
+
+   a. offering the Software as a standalone or competing hosted service;
+   b. OEM or white-label distribution;
+   c. rebranding the Software as Your own product; or
+   d. removing or replacing the required Approva attribution.
+
+   For Commercial License inquiries, contact: founders@approva.xyz
+
+7. Redistribution
+
+   If You distribute the Software or a Derivative Work, You must:
+
+   a. include a copy of this License; and
+   b. retain all copyright, trademark, attribution, and other proprietary notices included in
+      the Software, except as necessary to reflect lawful modifications.
+
+8. Trademarks
+
+   This License does not grant You any right to use the Licensor's or Approva's trademarks,
+   trade dress, branding, or logos except as necessary to provide the attribution required by
+   this License or to describe the Software truthfully.
+
+9. Termination
+
+   Any rights granted under this License terminate automatically if You fail to comply with any
+   term of this License. Upon termination, You must stop using and distributing the Software and
+   any Derivative Works that depend on the terminated rights.
+
+10. Disclaimer of Warranty
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+   WITHOUT LIMITATION ANY WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE,
+   AND NON-INFRINGEMENT.
+
+11. Limitation of Liability
+
+   TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY
+   CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT, OR OTHERWISE, ARISING FROM OR
+   IN CONNECTION WITH THE SOFTWARE OR THE USE OF OR OTHER DEALINGS IN THE SOFTWARE.

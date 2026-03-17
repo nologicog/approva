@@ -1,0 +1,37 @@
+{
+  "extends": "@approva/config/typescript/next.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@approva/config": [
+        "../../packages/config/src"
+      ],
+      "@approva/email": [
+        "../../packages/email/src"
+      ],
+      "@approva/shared": [
+        "../../packages/shared/src"
+      ],
+      "@approva/sdk": [
+        "../../packages/sdk/src"
+      ],
+      "@/*": [
+        "./*"
+      ]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
