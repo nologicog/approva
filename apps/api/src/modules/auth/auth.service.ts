@@ -1,10 +1,12 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { timingSafeEqual } from 'node:crypto';
 import type {
   ApproverSessionState,
   PasskeyAuthenticationFinishResponse,
@@ -15,13 +17,10 @@ import type {
 import type {
   AuthenticationResponseJSON,
   AuthenticatorTransportFuture,
-  RegistrationResponseJSON,
 } from '@simplewebauthn/server';
 import {
   generateAuthenticationOptions,
-  generateRegistrationOptions,
   verifyAuthenticationResponse,
-  verifyRegistrationResponse,
 } from '@simplewebauthn/server';
 import type { Request, Response } from 'express';
 import { PrismaService } from '../../common/prisma/prisma.service';
@@ -30,8 +29,10 @@ import {
   generateOpaqueToken,
   hashTokenValue,
 } from '../../common/utils/hash.util';
+import { OrganizationRbacService } from '../organizations/organization-rbac.service';
 
-const APPROVER_SESSION_COOKIE = 'authon_approver_session';
+const APPROVER_SESSION_COOKIE = 'approva_approver_session';
+const LEGACY_APPROVER_SESSION_COOKIE = 'authon_approver_session';
 
 export interface AuthenticatedApproverSession {
   sessionId: string;
@@ -51,127 +52,55 @@ export interface AuthenticatedApproverSession {
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly organizationRbacService: OrganizationRbacService,
+  ) {}
 
   async startPasskeyRegistration(
-    email: string,
+    input: {
+      requestId: string;
+      token: string;
+      email: string;
+    },
   ): Promise<PasskeyRegistrationStartResponse> {
-    const approverUser = await this.getActiveApproverUserByEmail(email, {
-      credentials: true,
-    });
-
-    const options = await generateRegistrationOptions({
-      rpName: this.getPasskeyRpName(),
-      rpID: this.getPasskeyRpId(),
-      userName: approverUser.email,
-      userID: new TextEncoder().encode(approverUser.id),
-      userDisplayName: approverUser.displayName,
-      attestationType: 'none',
-      excludeCredentials: approverUser.credentials.map((credential) => ({
-        id: credential.credentialId,
-        transports: this.parseCredentialTransports(credential.transportsJson),
-      })),
-      authenticatorSelection: {
-        residentKey: 'required',
-        userVerification: 'preferred',
-      },
-      preferredAuthenticatorType: 'localDevice',
-    });
-
-    await this.prisma.approverUser.update({
-      where: {
-        id: approverUser.id,
-      },
-      data: {
-        registrationChallenge: options.challenge,
-        registrationChallengeExpiresAt: this.buildChallengeExpiry(),
-      },
-    });
-
-    return {
-      user: toApproverUser(approverUser),
-      options: options as unknown as Record<string, unknown>,
-    };
+    void input;
+    throw new ForbiddenException(
+      'Passkey enrollment from approval links is disabled. Sign in to the console and use Settings to manage approval passkeys.',
+    );
   }
 
   async finishPasskeyRegistration(input: {
+    requestId: string;
+    token: string;
     email: string;
     response: Record<string, unknown>;
   }): Promise<PasskeyRegistrationFinishResponse> {
-    const approverUser = await this.getActiveApproverUserByEmail(input.email);
-
-    if (
-      !approverUser.registrationChallenge ||
-      !approverUser.registrationChallengeExpiresAt ||
-      approverUser.registrationChallengeExpiresAt.getTime() <= Date.now()
-    ) {
-      throw new BadRequestException('Passkey registration challenge is missing or expired.');
-    }
-
-    const verification = await verifyRegistrationResponse({
-      response: input.response as unknown as RegistrationResponseJSON,
-      expectedChallenge: approverUser.registrationChallenge,
-      expectedOrigin: this.getPasskeyExpectedOrigins(),
-      expectedRPID: this.getPasskeyExpectedRpIds(),
-      requireUserVerification: true,
-    });
-
-    if (!verification.verified || !verification.registrationInfo) {
-      throw new BadRequestException('Passkey registration could not be verified.');
-    }
-
-    const {
-      credential,
-      credentialDeviceType,
-      credentialBackedUp,
-    } = verification.registrationInfo;
-
-    const existingCredential = await this.prisma.webauthnCredential.findUnique({
-      where: {
-        credentialId: credential.id,
-      },
-    });
-
-    if (existingCredential) {
-      throw new ConflictException('This passkey is already registered.');
-    }
-
-    await this.prisma.$transaction(async (tx) => {
-      await tx.webauthnCredential.create({
-        data: {
-          approverUserId: approverUser.id,
-          credentialId: credential.id,
-          publicKey: Buffer.from(credential.publicKey),
-          counter: credential.counter,
-          transportsJson: credential.transports ?? undefined,
-          deviceType: credentialDeviceType,
-          backedUp: credentialBackedUp,
-        },
-      });
-
-      await tx.approverUser.update({
-        where: {
-          id: approverUser.id,
-        },
-        data: {
-          registrationChallenge: null,
-          registrationChallengeExpiresAt: null,
-        },
-      });
-    });
-
-    return {
-      user: toApproverUser(approverUser),
-      credentialId: credential.id,
-    };
+    void input;
+    throw new ForbiddenException(
+      'Passkey enrollment from approval links is disabled. Sign in to the console and use Settings to manage approval passkeys.',
+    );
   }
 
   async startPasskeyAuthentication(
-    email: string,
+    input: {
+      requestId: string;
+      token: string;
+      email: string;
+    },
   ): Promise<PasskeyAuthenticationStartResponse> {
-    const approverUser = await this.getActiveApproverUserByEmail(email, {
-      credentials: true,
-    });
+    const approvalContext = await this.assertApprovalScopedPasskeyAccess(
+      input.requestId,
+      input.token,
+      input.email,
+    );
+    const approverUser = await this.getScopedApproverUser(
+      approvalContext.organizationId,
+      input.email,
+      {
+        credentials: true,
+      },
+    );
 
     if (approverUser.credentials.length === 0) {
       throw new ConflictException('No passkey is registered for this approver yet.');
@@ -204,14 +133,25 @@ export class AuthService {
 
   async finishPasskeyAuthentication(
     input: {
+      requestId: string;
+      token: string;
       email: string;
       response: Record<string, unknown>;
     },
     response: Response,
   ): Promise<PasskeyAuthenticationFinishResponse> {
-    const approverUser = await this.getActiveApproverUserByEmail(input.email, {
-      credentials: true,
-    });
+    const approvalContext = await this.assertApprovalScopedPasskeyAccess(
+      input.requestId,
+      input.token,
+      input.email,
+    );
+    const approverUser = await this.getScopedApproverUser(
+      approvalContext.organizationId,
+      input.email,
+      {
+        credentials: true,
+      },
+    );
 
     if (
       !approverUser.authenticationChallenge ||
@@ -348,7 +288,7 @@ export class AuthService {
     request: Request,
     response: Response,
   ): Promise<ApproverSessionState> {
-    const sessionToken = request.cookies?.[APPROVER_SESSION_COOKIE] as string | undefined;
+    const sessionToken = this.readSessionCookie(request);
 
     if (sessionToken) {
       await this.prisma.approverSession.deleteMany({
@@ -367,12 +307,13 @@ export class AuthService {
 
   clearSessionCookie(response: Response) {
     response.clearCookie(APPROVER_SESSION_COOKIE, this.getSessionCookieOptions());
+    response.clearCookie(LEGACY_APPROVER_SESSION_COOKIE, this.getSessionCookieOptions());
   }
 
   private async lookupAuthenticatedSession(
     request: Request,
   ): Promise<AuthenticatedApproverSession | null> {
-    const sessionToken = request.cookies?.[APPROVER_SESSION_COOKIE] as string | undefined;
+    const sessionToken = this.readSessionCookie(request);
 
     if (!sessionToken) {
       return null;
@@ -413,15 +354,50 @@ export class AuthService {
     };
   }
 
-  private async getActiveApproverUserByEmail(
+  private async getScopedApproverUser(
+    organizationId: string,
     email: string,
     include?: {
       credentials?: boolean;
     },
   ) {
-    const approverUser = await this.prisma.approverUser.findUnique({
+    const normalizedEmail = this.normalizeEmail(email);
+    const localUser = await this.prisma.organizationMember.findFirst({
       where: {
-        email: this.normalizeEmail(email),
+        organizationId,
+        user: {
+          email: normalizedEmail,
+          disabledAt: null,
+        },
+      },
+      select: {
+        user: {
+          select: {
+            email: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!localUser?.user.email) {
+      throw new ForbiddenException(
+        'Approval passkey authentication is only available for users managed in this organization.',
+      );
+    }
+
+    const approverUser = await this.prisma.approverUser.upsert({
+      where: {
+        email: normalizedEmail,
+      },
+      update: {
+        displayName: localUser.user.name ?? normalizedEmail,
+        status: 'active',
+      },
+      create: {
+        email: normalizedEmail,
+        displayName: localUser.user.name ?? normalizedEmail,
+        status: 'active',
       },
       include: {
         credentials: include?.credentials ?? false,
@@ -433,6 +409,92 @@ export class AuthService {
     }
 
     return approverUser;
+  }
+
+  private async assertApprovalScopedPasskeyAccess(
+    requestId: string,
+    token: string,
+    email: string,
+  ) {
+    const approvalRequest = await this.prisma.approvalRequest.findUnique({
+      where: {
+        id: requestId,
+      },
+      select: {
+        id: true,
+        organizationId: true,
+        status: true,
+        expiresAt: true,
+        approvalAccessTokenHash: true,
+        policyResult: true,
+      },
+    });
+
+    if (!approvalRequest) {
+      throw new NotFoundException('Approval request not found.');
+    }
+
+    this.assertValidApprovalAccessToken(approvalRequest.approvalAccessTokenHash, token);
+
+    if (
+      approvalRequest.status !== 'pending' ||
+      approvalRequest.expiresAt.getTime() <= Date.now()
+    ) {
+      throw new ConflictException(
+        'This approval request can no longer accept passkey registration or authentication.',
+      );
+    }
+
+    const authorization = await this.organizationRbacService.getApproverAuthorization(
+      approvalRequest.organizationId,
+      email,
+      this.extractAllowedApproverRoles(approvalRequest.policyResult),
+    );
+
+    if (!authorization.authorized) {
+      throw new ForbiddenException(authorization.message);
+    }
+
+    return {
+      organizationId: approvalRequest.organizationId,
+      approverEmail: email,
+    };
+  }
+
+  private assertValidApprovalAccessToken(expectedTokenHash: string, token: string) {
+    const providedHash = Buffer.from(hashTokenValue(token), 'utf8');
+    const expectedHash = Buffer.from(expectedTokenHash, 'utf8');
+
+    if (
+      providedHash.length !== expectedHash.length ||
+      !timingSafeEqual(providedHash, expectedHash)
+    ) {
+      throw new ForbiddenException('Invalid approval access token.');
+    }
+  }
+
+  private extractAllowedApproverRoles(policyResult: unknown) {
+    if (
+      !policyResult ||
+      typeof policyResult !== 'object' ||
+      Array.isArray(policyResult)
+    ) {
+      return [] as Array<'owner' | 'admin' | 'member' | 'approver'>;
+    }
+
+    const approverRoles = (policyResult as Record<string, unknown>).approverRoles;
+
+    if (!Array.isArray(approverRoles)) {
+      return [] as Array<'owner' | 'admin' | 'member' | 'approver'>;
+    }
+
+    return approverRoles.filter(
+      (value): value is 'owner' | 'admin' | 'member' | 'approver' =>
+        value === 'owner' ||
+        value === 'admin' ||
+        value === 'member' ||
+        value === 'approver',
+    );
   }
 
   private extractCredentialId(response: Record<string, unknown>) {
@@ -481,6 +543,11 @@ export class AuthService {
       ...this.getSessionCookieOptions(),
       expires: expiresAt,
     });
+  }
+
+  private readSessionCookie(request: Request) {
+    return (request.cookies?.[APPROVER_SESSION_COOKIE] ??
+      request.cookies?.[LEGACY_APPROVER_SESSION_COOKIE]) as string | undefined;
   }
 
   private getSessionCookieOptions() {

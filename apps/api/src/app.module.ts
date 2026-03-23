@@ -5,13 +5,13 @@ import {
   RequestMethod,
 } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { validateAuthonApiEnvironment } from '@approva/config';
+import { validateApprovaApiEnvironment } from '@approva/config';
 import { PrismaModule } from './common/prisma/prisma.module';
 import { ApprovalRequestsModule } from './modules/approval-requests/approval-requests.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AuditModule } from './modules/audit/audit.module';
-import { BillingModule } from './modules/billing/billing.module';
 import { CapabilityModule } from './modules/capability/capability.module';
+import { ConsoleAuthModule } from './modules/console-auth/console-auth.module';
 import { DemoAiDeployModule } from './modules/demo-ai-deploy/demo-ai-deploy.module';
 import { ImmutableLogModule } from './modules/immutable-log/immutable-log.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
@@ -32,12 +32,12 @@ import { WebhookModule } from './modules/webhook/webhook.module';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env', '../../.env'],
-      validate: validateAuthonApiEnvironment,
+      validate: validateApprovaApiEnvironment,
     }),
+    ConsoleAuthModule,
     ObservabilityModule,
     PrismaModule,
     AuthModule,
-    BillingModule,
     PolicyModule,
     OrganizationsModule,
     IntegrationsModule,

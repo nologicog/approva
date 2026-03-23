@@ -4,6 +4,10 @@
 
 The AI Deploy Approval demo is the clearest end-to-end narrative in the repository.
 
+If you want the fastest terminal-driven round trip first, start the stack with `make dev` and then
+run `make demo`. That built-in flow creates a request, prints the secure approval URL, and waits
+for the decision. The browser AI deploy demo below is the richer visual walkthrough.
+
 It simulates:
 
 - an AI deploy agent requesting approval for a production deployment of `billing-api`
@@ -83,10 +87,9 @@ This token scopes which request can be viewed and decided.
 
 ### 3. Approver authenticates with a passkey
 
-The approval page uses the passkey flow:
+Passkeys are enrolled ahead of time from Console Settings for a managed local user.
+The approval page itself now only uses the authentication half of the passkey flow:
 
-- `POST /v1/auth/passkeys/register/start`
-- `POST /v1/auth/passkeys/register/finish`
 - `POST /v1/auth/passkeys/authenticate/start`
 - `POST /v1/auth/passkeys/authenticate/finish`
 
