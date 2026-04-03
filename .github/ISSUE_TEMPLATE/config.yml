@@ -1,8 +1,0 @@
-blank_issues_enabled: false
-contact_links:
-  - name: Security vulnerability report
-    url: mailto:founders@approva.xyz
-    about: Report sensitive security issues privately. Do not open public issues for vulnerabilities.
-  - name: Documentation and usage guides
-    url: https://github.com/lookmanrays/approva/tree/main/docs
-    about: Start here for self-host, CLI, examples, and integration docs.

